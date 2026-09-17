@@ -1,0 +1,13 @@
+aws_region           = "us-east-1"
+environment          = "production"
+vpc_id               = "vpc-0123456789abcdef0"
+public_subnet_ids    = ["subnet-public-a", "subnet-public-b"]
+private_subnet_ids   = ["subnet-private-a", "subnet-private-b"]
+database_subnet_ids  = ["subnet-db-a", "subnet-db-b"]
+private_cidr_blocks  = ["10.0.10.0/24", "10.0.11.0/24"]
+database_cidr_blocks = ["10.0.20.0/24", "10.0.21.0/24"]
+allowed_admin_cidrs  = ["203.0.113.10/32"]
+
+# Optional GitHub Actions OIDC deployment role.
+# github_oidc_provider_arn = "arn:aws:iam::123456789012:oidc-provider/token.actions.githubusercontent.com"
+# github_repository        = "OWNER/REPOSITORY"
