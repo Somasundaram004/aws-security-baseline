@@ -1,0 +1,12 @@
+aws_region           = "us-east-1"
+environment          = "production"
+vpc_id               = "vpc-REPLACE_ME"
+public_subnet_ids    = ["subnet-REPLACE_ME_A", "subnet-REPLACE_ME_B"]
+private_subnet_ids   = ["subnet-REPLACE_ME_A", "subnet-REPLACE_ME_B"]
+database_subnet_ids  = ["subnet-REPLACE_ME_A", "subnet-REPLACE_ME_B"]
+private_cidr_blocks  = ["10.10.10.0/24", "10.10.11.0/24"]
+database_cidr_blocks = ["10.10.20.0/24", "10.10.21.0/24"]
+allowed_admin_cidrs  = ["198.51.100.10/32"]
+enable_guardduty     = true
+enable_security_hub  = true
+enable_config        = true

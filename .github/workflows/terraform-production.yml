@@ -1,0 +1,74 @@
+name: terraform-production
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    environment: production-plan
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_TERRAFORM_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - name: Write protected Terraform inputs
+        env:
+          TFVARS_B64: ${{ secrets.PRODUCTION_TFVARS_B64 }}
+          BACKEND_B64: ${{ secrets.TERRAFORM_BACKEND_B64 }}
+        run: |
+          set -euo pipefail
+          test -n "$TFVARS_B64"
+          test -n "$BACKEND_B64"
+          printf '%s' "$TFVARS_B64" | base64 --decode > production.tfvars
+          printf '%s' "$BACKEND_B64" | base64 --decode > backend.hcl
+      - name: Plan
+        run: |
+          set -euo pipefail
+          terraform init -backend-config=backend.hcl
+          terraform fmt -check -recursive
+          terraform validate
+          terraform plan -input=false -var-file=production.tfvars -out=production.tfplan
+      - uses: actions/upload-artifact@v4
+        with:
+          name: production-plan
+          path: production.tfplan
+          retention-days: 7
+
+  apply:
+    needs: plan
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_TERRAFORM_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: production-plan
+      - name: Write protected Terraform inputs
+        env:
+          TFVARS_B64: ${{ secrets.PRODUCTION_TFVARS_B64 }}
+          BACKEND_B64: ${{ secrets.TERRAFORM_BACKEND_B64 }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$TFVARS_B64" | base64 --decode > production.tfvars
+          printf '%s' "$BACKEND_B64" | base64 --decode > backend.hcl
+      - name: Apply approved plan
+        run: |
+          set -euo pipefail
+          terraform init -backend-config=backend.hcl
+          terraform apply -input=false production.tfplan

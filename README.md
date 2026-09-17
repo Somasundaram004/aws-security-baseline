@@ -21,6 +21,8 @@ Use Terraform 1.6+, AWS CLI v2, and an AWS identity dedicated to provisioning. T
 
 Every pull request is checked by GitHub Actions with `terraform fmt`, `terraform init -backend=false`, `terraform validate`, and Checkov. The workflow does not authenticate to AWS or apply changes.
 
+Production training and change control are documented in [docs/production-training.md](docs/production-training.md) and [docs/production-checklist.md](docs/production-checklist.md). The protected [terraform-production.yml](.github/workflows/terraform-production.yml) workflow performs an OIDC-authenticated plan, stores the exact plan as a short-lived artifact, and requires approval from the `production` environment before apply.
+
 Configure credentials without placing keys in this repository:
 
 ```bash

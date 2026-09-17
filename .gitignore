@@ -5,5 +5,6 @@ terraform.tfstate.*
 crash.log
 *.tfvars
 !terraform.tfvars.example
+!production.tfvars.example
 *.pem
 *.key
