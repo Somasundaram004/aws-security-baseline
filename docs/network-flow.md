@@ -1,9 +1,9 @@
 # End-to-End Cloud Network Flow
 
-This diagram describes the intended AWS network path for an internet-facing application. The security baseline manages the VPC flow logs, security groups, NACLs, encryption, and detection services shown with a solid border. The VPC, routes, load balancer, NAT gateway, endpoints, and workloads are existing or separately managed infrastructure.
+This vertical diagram describes the intended AWS network path for an internet-facing application from top to bottom. The security baseline manages the VPC flow logs, security groups, NACLs, encryption, and detection services shown with a solid border. The VPC, routes, load balancer, NAT gateway, endpoints, and workloads are existing or separately managed infrastructure.
 
 ```mermaid
-flowchart LR
+flowchart TB
     client[Internet client]
     dns[Route 53 or external DNS]
     edge[Optional CloudFront and WAF]
