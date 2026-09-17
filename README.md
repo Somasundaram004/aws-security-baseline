@@ -19,6 +19,8 @@ Least-privilege, infrastructure-as-code controls for an existing AWS VPC. This r
 
 Use Terraform 1.6+, AWS CLI v2, and an AWS identity dedicated to provisioning. The identity needs permission to create the resources in the Terraform plan. Enable MFA for human identities and use short-lived credentials or OIDC in CI.
 
+Every pull request is checked by GitHub Actions with `terraform fmt`, `terraform init -backend=false`, `terraform validate`, and Checkov. The workflow does not authenticate to AWS or apply changes.
+
 Configure credentials without placing keys in this repository:
 
 ```bash
