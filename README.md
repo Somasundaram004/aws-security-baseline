@@ -25,6 +25,8 @@ Production training and change control are documented in [docs/production-traini
 
 See the [end-to-end security architecture diagram](docs/security-architecture.md) for the identity, deployment, VPC traffic, NACL/security-group, encryption, logging, detection, and response flow.
 
+See the [cloud network-flow diagram](docs/network-flow.md) for inbound HTTPS, private application-to-database, NAT/VPC endpoint egress, administration, and evidence paths.
+
 Configure credentials without placing keys in this repository:
 
 ```bash
