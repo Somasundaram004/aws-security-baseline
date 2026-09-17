@@ -1,6 +1,6 @@
 # End-to-End Security Architecture
 
-This diagram shows how identity, deployment, network enforcement, encryption, logging, detection, and response work together. The Terraform in this repository protects an existing VPC; it does not create the VPC or workload compute.
+This diagram shows how identity, deployment, network enforcement, encryption, logging, detection, and response work together. The Terraform in this repository protects an existing VPC; it does not create the VPC or workload compute. ALB, application, and database security groups use the pinned public `terraform-aws-modules/security-group/aws` module; NACLs remain local resources.
 
 ```mermaid
 flowchart TB

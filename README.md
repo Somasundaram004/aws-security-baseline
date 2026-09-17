@@ -6,6 +6,7 @@ Least-privilege, infrastructure-as-code controls for an existing AWS VPC. This r
 
 - IAM account password policy with length, complexity, rotation, and reuse prevention
 - Optional GitHub Actions OIDC role restricted to one repository and the `main` branch
+- Public `terraform-aws-modules/security-group/aws` module pinned to the 5.3 minor release for ALB, application, and database security groups
 - No SSH ingress in the security groups
 - ALB HTTPS ingress, app traffic only from the ALB security group, and PostgreSQL only from the app security group
 - Public, private, and database subnet network ACLs
@@ -68,7 +69,7 @@ Create or reference the GitHub OIDC provider ARN, then set `github_oidc_provider
 
 ## Network ACL warning
 
-NACLs are stateless. Every allowed flow needs return traffic, ephemeral ports, DNS, package repositories, and any required VPC endpoint paths. Test in a non-production VPC first. Security groups are the primary workload control; use NACLs as a subnet boundary and emergency containment layer.
+NACLs are stateless. Every allowed flow needs return traffic, ephemeral ports, DNS, package repositories, and any required VPC endpoint paths. Test in a non-production VPC first. Security groups are created through the pinned public Registry module; NACLs remain local because their subnet rules are environment-specific and require explicit review.
 
 ## Deploy NACLs
 

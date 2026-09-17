@@ -1,43 +1,31 @@
-resource "aws_security_group" "alb" {
+module "alb_security_group" {
+  source  = "terraform-aws-modules/security-group/aws"
+  version = "~> 5.3"
   name        = "${var.environment}-alb"
   description = "Public HTTPS load balancer; no SSH access."
   vpc_id      = var.vpc_id
-  ingress {
-    description = "HTTPS from the internet"
-    protocol    = "tcp"
-    from_port   = 443
-    to_port     = 443
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  egress { protocol = "-1" from_port = 0 to_port = 0 cidr_blocks = ["0.0.0.0/0"] }
+  ingress_with_cidr_blocks = [{ from_port = 443, to_port = 443, protocol = "tcp", description = "HTTPS from the internet", cidr_blocks = "0.0.0.0/0" }]
+  egress_rules = ["all-all"]
 }
 
-resource "aws_security_group" "app" {
+module "app_security_group" {
+  source  = "terraform-aws-modules/security-group/aws"
+  version = "~> 5.3"
   name        = "${var.environment}-app"
   description = "Application traffic only from the ALB."
   vpc_id      = var.vpc_id
-  ingress {
-    description     = "HTTP from the ALB"
-    protocol        = "tcp"
-    from_port       = 80
-    to_port         = 80
-    security_groups = [aws_security_group.alb.id]
-  }
-  egress { protocol = "-1" from_port = 0 to_port = 0 cidr_blocks = ["0.0.0.0/0"] }
+  ingress_with_source_security_group_id = [{ from_port = 80, to_port = 80, protocol = "tcp", description = "HTTP from the ALB", source_security_group_id = module.alb_security_group.security_group_id }]
+  egress_rules = ["all-all"]
 }
 
-resource "aws_security_group" "database" {
+module "database_security_group" {
+  source  = "terraform-aws-modules/security-group/aws"
+  version = "~> 5.3"
   name        = "${var.environment}-database"
   description = "Database traffic only from the application tier."
   vpc_id      = var.vpc_id
-  ingress {
-    description     = "PostgreSQL from application tier"
-    protocol        = "tcp"
-    from_port       = 5432
-    to_port         = 5432
-    security_groups = [aws_security_group.app.id]
-  }
-  egress { protocol = "-1" from_port = 0 to_port = 0 cidr_blocks = ["0.0.0.0/0"] }
+  ingress_with_source_security_group_id = [{ from_port = 5432, to_port = 5432, protocol = "tcp", description = "PostgreSQL from application tier", source_security_group_id = module.app_security_group.security_group_id }]
+  egress_rules = ["all-all"]
 }
 
 resource "aws_network_acl" "public" {
