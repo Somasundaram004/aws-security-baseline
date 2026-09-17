@@ -44,24 +44,130 @@ resource "aws_network_acl" "public" {
   vpc_id     = var.vpc_id
   subnet_ids = var.public_subnet_ids
   tags       = { Name = "${var.environment}-public" }
-  ingress { protocol = "tcp" rule_no = 100 action = "allow" cidr_block = "0.0.0.0/0" from_port = 80 to_port = 443 }
-  ingress { protocol = "tcp" rule_no = 110 action = "allow" cidr_block = "0.0.0.0/0" from_port = 1024 to_port = 65535 }
-  egress  { protocol = "-1" rule_no = 100 action = "allow" cidr_block = "0.0.0.0/0" from_port = 0 to_port = 0 }
 }
 
 resource "aws_network_acl" "private" {
   vpc_id     = var.vpc_id
   subnet_ids = var.private_subnet_ids
   tags       = { Name = "${var.environment}-private" }
-  ingress { protocol = "tcp" rule_no = 100 action = "allow" cidr_block = "0.0.0.0/0" from_port = 1024 to_port = 65535 }
-  egress  { protocol = "tcp" rule_no = 100 action = "allow" cidr_block = "0.0.0.0/0" from_port = 443 to_port = 443 }
-  egress  { protocol = "tcp" rule_no = 110 action = "allow" cidr_block = "0.0.0.0/0" from_port = 1024 to_port = 65535 }
 }
 
 resource "aws_network_acl" "database" {
   vpc_id     = var.vpc_id
   subnet_ids = var.database_subnet_ids
   tags       = { Name = "${var.environment}-database" }
-  ingress { protocol = "tcp" rule_no = 100 action = "allow" cidr_block = "0.0.0.0/0" from_port = 1024 to_port = 65535 }
-  egress  { protocol = "tcp" rule_no = 100 action = "allow" cidr_block = "0.0.0.0/0" from_port = 1024 to_port = 65535 }
+}
+
+resource "aws_network_acl_rule" "public_https" {
+  network_acl_id = aws_network_acl.public.id
+  egress = false
+  rule_number = 100
+  protocol = "tcp"
+  rule_action = "allow"
+  cidr_block = "0.0.0.0/0"
+  from_port = 443
+  to_port = 443
+}
+
+resource "aws_network_acl_rule" "public_http_redirect" {
+  network_acl_id = aws_network_acl.public.id
+  egress = false
+  rule_number = 110
+  protocol = "tcp"
+  rule_action = "allow"
+  cidr_block = "0.0.0.0/0"
+  from_port = 80
+  to_port = 80
+}
+
+resource "aws_network_acl_rule" "public_ephemeral_in" {
+  network_acl_id = aws_network_acl.public.id
+  egress = false
+  rule_number = 120
+  protocol = "tcp"
+  rule_action = "allow"
+  cidr_block = "0.0.0.0/0"
+  from_port = 1024
+  to_port = 65535
+}
+
+resource "aws_network_acl_rule" "public_all_out" {
+  network_acl_id = aws_network_acl.public.id
+  egress = true
+  rule_number = 100
+  protocol = "-1"
+  rule_action = "allow"
+  cidr_block = "0.0.0.0/0"
+  from_port = 0
+  to_port = 0
+}
+
+resource "aws_network_acl_rule" "private_ephemeral_in" {
+  for_each = { for index, cidr in var.private_cidr_blocks : tostring(100 + index) => cidr }
+  network_acl_id = aws_network_acl.private.id
+  egress = false
+  rule_number = each.key
+  protocol = "tcp"
+  rule_action = "allow"
+  cidr_block = each.value
+  from_port = 1024
+  to_port = 65535
+}
+
+resource "aws_network_acl_rule" "private_https_out" {
+  network_acl_id = aws_network_acl.private.id
+  egress = true
+  rule_number = 100
+  protocol = "tcp"
+  rule_action = "allow"
+  cidr_block = "0.0.0.0/0"
+  from_port = 443
+  to_port = 443
+}
+
+resource "aws_network_acl_rule" "private_ephemeral_out" {
+  network_acl_id = aws_network_acl.private.id
+  egress = true
+  rule_number = 110
+  protocol = "tcp"
+  rule_action = "allow"
+  cidr_block = "0.0.0.0/0"
+  from_port = 1024
+  to_port = 65535
+}
+
+resource "aws_network_acl_rule" "database_postgres_in" {
+  for_each = { for index, cidr in var.private_cidr_blocks : tostring(100 + index) => cidr }
+  network_acl_id = aws_network_acl.database.id
+  egress = false
+  rule_number = each.key
+  protocol = "tcp"
+  rule_action = "allow"
+  cidr_block = each.value
+  from_port = 5432
+  to_port = 5432
+}
+
+resource "aws_network_acl_rule" "database_ephemeral_in" {
+  for_each = { for index, cidr in var.private_cidr_blocks : tostring(200 + index) => cidr }
+  network_acl_id = aws_network_acl.database.id
+  egress = false
+  rule_number = each.key
+  protocol = "tcp"
+  rule_action = "allow"
+  cidr_block = each.value
+  from_port = 1024
+  to_port = 65535
+}
+
+resource "aws_network_acl_rule" "database_ephemeral_out" {
+  for_each = { for index, cidr in var.private_cidr_blocks : tostring(100 + index) => cidr }
+  network_acl_id = aws_network_acl.database.id
+  egress = true
+  rule_number = each.key
+  protocol = "tcp"
+  rule_action = "allow"
+  cidr_block = each.value
+  from_port = 1024
+  to_port = 65535
 }

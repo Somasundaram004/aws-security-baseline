@@ -66,6 +66,21 @@ Create or reference the GitHub OIDC provider ARN, then set `github_oidc_provider
 
 NACLs are stateless. Every allowed flow needs return traffic, ephemeral ports, DNS, package repositories, and any required VPC endpoint paths. Test in a non-production VPC first. Security groups are the primary workload control; use NACLs as a subnet boundary and emergency containment layer.
 
+## Deploy NACLs
+
+The NACL implementation is in `network.tf`. It creates separate public, private, and database ACLs and explicitly models HTTPS/HTTP, ephemeral return traffic, private HTTPS egress, and database PostgreSQL ingress from private CIDRs. It does not open SSH or database access to the internet.
+
+Run a plan first:
+
+```bash
+cp terraform.tfvars.example terraform.tfvars
+# Replace VPC, subnet, and CIDR placeholders.
+./scripts/deploy-nacl.sh --dry-run
+./scripts/deploy-nacl.sh
+```
+
+The normal command only creates `nacl.tfplan`; it never applies changes. After a security-owner review, apply that exact plan with `APPLY=true ./scripts/deploy-nacl.sh`. Test DNS, VPC endpoints, NAT return paths, application health, and database connectivity in non-production before production use.
+
 ## Production checklist
 
 - Use separate AWS accounts for production, non-production, and security tooling.
