@@ -23,6 +23,8 @@ Every pull request is checked by GitHub Actions with `terraform fmt`, `terraform
 
 Production training and change control are documented in [docs/production-training.md](docs/production-training.md) and [docs/production-checklist.md](docs/production-checklist.md). The protected [terraform-production.yml](.github/workflows/terraform-production.yml) workflow performs an OIDC-authenticated plan, stores the exact plan as a short-lived artifact, and requires approval from the `production` environment before apply.
 
+See the [end-to-end security architecture diagram](docs/security-architecture.md) for the identity, deployment, VPC traffic, NACL/security-group, encryption, logging, detection, and response flow.
+
 Configure credentials without placing keys in this repository:
 
 ```bash
